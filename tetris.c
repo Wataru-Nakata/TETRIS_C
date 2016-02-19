@@ -5,6 +5,9 @@
 #define width 12
 #define height 21
 #define blocksize 2
+#define wallchar 9
+#define blockchar 1
+#define lockedblock 2
 char block[blocksize][blocksize] = {
         {1,1},
         {1,1}
@@ -34,14 +37,15 @@ char field[height][width],collision_field[height][width];
 void printfield(char c[height][width])
 {
         int i,j;
-        printf("\x1b[41m");
         for(j= 0; j<height; j++)
         {
                 for(i= 0; i<width; i++)
                 {
-                        if(c[j][i] == 9) {
+                        if(c[j][i] == wallchar) {
                                 printf("¡");
-                        }else if(c[j][i] == 1) {
+                        }else if(c[j][i] == blockchar) {
+                                printf(" ");
+                        }else if(c[j][i] == lockedblock) {
                                 printf(" ");
                         }else{
                                 printf("@");
@@ -57,12 +61,18 @@ void exit_seq()
         system("cls");
         exit(1);
 }
+int collision_condition(int y,int x)
+{
+        if((field[y][x] == 9) || (field[y][x] == 2))
+                return 1;
+        return 0;
+}
 int collision_detect(int tx,int ty)
 {
-  int i,j;
+        int i,j;
         for(i = 0; i<blocksize; i++) {
                 for(j=0; j<blocksize; j++) {
-                        if ((field[ty+i][tx+j] == 9)&&(block[i][j] == 1))
+                        if (collision_condition(ty+i,tx+j) &&(block[i][j] == 1))
                         {
                                 return 1;
                         }
@@ -83,7 +93,7 @@ int key_control(int *x,int *y)
                 //“–‚½‚è”»’è
                 if(collision_detect(tx,ty))
                 {
-                  return 0;
+                        return 0;
                 }
 
                 key = 0;
@@ -91,6 +101,16 @@ int key_control(int *x,int *y)
                 return 1;
         }else{
                 return 0;
+        }
+}
+// change blocks to wall
+void block2wall()
+{
+        int i,j;
+        for(i = 0; i < height; i++) {
+                for(j = 0; j< width; j++) {
+                        if(field[i][j] == blockchar) wall[i][j] = 2;
+                }
         }
 }
 int main()
@@ -136,13 +156,16 @@ int main()
                         sectime++;
                         if (collision_detect(x,y+1)== 0)
                         {
-                          y++;
-                          oh = 0;
+                                y++;
+                                oh = 0;
                         }else{
-                          if(oh == 1 ){
-                            printf("hit!!!");
-                          }
-                          oh = 1;
+                                if(oh == 1 ) {
+                                        printf("hit!!!");
+                                        x = 5;
+                                        y = 5;
+                                        block2wall();
+                                }
+                                oh = 1;
                         }
                         c = 1;
                 }
