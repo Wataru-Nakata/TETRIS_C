@@ -57,6 +57,19 @@ void exit_seq()
         system("cls");
         exit(1);
 }
+int collision_detect(int tx,int ty)
+{
+  int i,j;
+        for(i = 0; i<blocksize; i++) {
+                for(j=0; j<blocksize; j++) {
+                        if ((field[ty+i][tx+j] == 9)&&(block[i][j] == 1))
+                        {
+                                return 1;
+                        }
+                }
+        }
+        return 0;
+}
 int key_control(int *x,int *y)
 {
         int key,i,j,tx = *x,ty = *y;
@@ -68,14 +81,11 @@ int key_control(int *x,int *y)
                 case 'q': exit_seq(); break;
                 }
                 //“–‚½‚è”»’è
-                for(i = 0; i<blocksize; i++) {
-                        for(j=0; j<blocksize; j++) {
-                                if ((field[ty+i][tx+j] == 9)&&(block[i][j] == 1))
-                                {
-                                        return 0;
-                                }
-                        }
+                if(collision_detect(tx,ty))
+                {
+                  return 0;
                 }
+
                 key = 0;
                 *x = tx;
                 return 1;
@@ -86,7 +96,8 @@ int key_control(int *x,int *y)
 int main()
 {
 
-        int x = 5,y = 5,i,j;
+        int x = 5,y = 5,i,j,c = 0,oh = 0;
+        clock_t time = 0,sectime = 0;
         for(i = 0; i < height; i++) {
                 for(j = 0; j< width; j++) {
                         field[i][j] = wall[i][j];
@@ -94,7 +105,7 @@ int main()
         }
         while(1)
         {
-                if(key_control(&x,&y)) {
+                if(key_control(&x,&y)|| c) {
                         system("cls");
                         for(i = 0; i < height; i++) {
                                 for(j = 0; j< width; j++) {
@@ -112,8 +123,28 @@ int main()
                                         collision_field[i][j] = field[i][j];
                                 }
                         }
+                        time = clock()/CLOCKS_PER_SEC-sectime;
+                        if (time ==1) {
+                                sectime++;
+                                y++;
+                        }
                         printfield(field);
+                        c = 0;
+                }
+                time = clock()/CLOCKS_PER_SEC-sectime;
+                if (time ==1) {
+                        sectime++;
+                        if (collision_detect(x,y+1)== 0)
+                        {
+                          y++;
+                          oh = 0;
+                        }else{
+                          if(oh == 1 ){
+                            printf("hit!!!");
+                          }
+                          oh = 1;
+                        }
+                        c = 1;
                 }
         }
-        return 0;
 }
