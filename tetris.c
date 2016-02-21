@@ -1,18 +1,203 @@
-#include <stdio.h>
+	/*
+	 * TETRIS Program
+	 * Author : Wataru Nakata
+	 * TODO: add blocks erase add score system.
+	 */
+#include  <stdio.h>
 #include <conio.h>
 #include <stdlib.h>
 #include <time.h>
 #define width		12
 #define height		21
-#define blocksize	2
+#define blocksize	4
 #define wallchar	9
 #define blockchar	1
 #define lockedblock 2
-char block[blocksize][blocksize] = {
-	{ 1, 1 },
-	{ 1, 1 }
+#define FALL_SPEED	1
+#define blockNum	7
+char block[blockNum][4][blocksize][blocksize] = {
+	{ {
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 0, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 0, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 0, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 0, 0, 0 }
+			} },
+
+	{ {
+				{ 0, 0, 0, 0 },
+				{ 0, 0, 0, 0 },
+				{ 1, 1, 1, 1 },
+				{ 0, 0, 0, 0 }
+			},
+
+			{
+				{ 0, 0, 1, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 0, 1, 0 }
+			},
+
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 0, 0, 0 },
+				{ 1, 1, 1, 1 },
+				{ 0, 0, 0, 0 }
+			},
+
+			{
+				{ 0, 0, 1, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 0, 1, 0 }
+			}, },
+
+	{ {
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 1, 1, 0, 0 },
+				{ 0, 0, 0, 0 }
+			},
+
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 0, 1, 0 }
+			},
+
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 1, 1, 0, 0 },
+				{ 0, 0, 0, 0 }
+			},
+
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 0, 1, 0 }
+			} },
+
+	{ {
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 0, 1, 1 },
+				{ 0, 0, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 1, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 0, 1, 1 },
+				{ 0, 0, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 1, 0, 0 }
+			} },
+
+	{ {
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 0, 0 },
+				{ 0, 1, 1, 1 },
+				{ 0, 0, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 1, 0, 0 },
+				{ 0, 1, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 1, 1, 1, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 0, 0, 0 }
+			},
+			{
+				{ 0, 0, 1, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 0, 0, 0 }
+			} },
+
+	{ {
+				{ 0, 0, 0, 0 },
+				{ 0, 0, 1, 0 },
+				{ 1, 1, 1, 0 },
+				{ 0, 0, 0, 0 }
+			},
+			{
+				{ 0, 1, 0, 0 },
+				{ 0, 1, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 0, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 1, 1 },
+				{ 0, 1, 0, 0 },
+				{ 0, 0, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 0, 1, 0 }
+			} },
+
+	{ {
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 0, 0 },
+				{ 1, 1, 1, 0 },
+				{ 0, 0, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 0, 0 },
+				{ 0, 1, 1, 0 },
+				{ 0, 1, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 0, 0, 0 },
+				{ 1, 1, 1, 0 },
+				{ 0, 1, 0, 0 }
+			},
+			{
+				{ 0, 0, 0, 0 },
+				{ 0, 1, 0, 0 },
+				{ 1, 1, 0, 0 },
+				{ 0, 1, 0, 0 }
+			} }
 };
-char wall[21][12] = {
+char wall[height][width] = {
 	{ 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9 },
 	{ 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9 },
 	{ 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9 },
@@ -43,15 +228,15 @@ void printfield(char c[height][width])
 		{
 			if(c[j][i] == wallchar)
 			{
-				printf("Å°");
+				printf("??");
 			}
 			else if((c[j][i] == blockchar) || (c[j][i] == lockedblock))
 			{
-				printf("Å†");
+				printf("??");
 			}
 			else
 			{
-				printf("Å@");
+				printf("?@");
 			}
 		}
 		printf("\n");
@@ -62,7 +247,7 @@ void exit_seq()
 {
 	printf("\x1b[0m");
 	system("cls");
-	exit(1);
+	exit(0);
 }
 
 int collision_condition(int y, int x)
@@ -108,7 +293,7 @@ int key_control(int* x, int* y)
 			}
 			break;
 		}
-		// ìñÇΩÇËîªíË
+		// ????????
 		if(collision_detect(tx, ty))
 		{
 			return 0;
@@ -143,29 +328,37 @@ void block2wall()
 
 void checklines()
 {
-  int i,j,linecheck;
+	int	 i, j, k, linecheck, remainline[height] = { 0 }, remaincount = 0;
+	char temp_field[height][width];
 	for(i = 0; i < height; i++)
 	{
-    linecheck = 1;
-		for(j = 1; j < width-1; j++)
+		for(j = 0; j < width; j++)
 		{
-      if(field[i][j] != 2) linecheck=0;
-
+			temp_field[i][j] = wall[i][j];
 		}
-    if(linecheck)
-    {
-      for(j = 0;j<width;j++)
-      {
-        field[i][j] = field[i-1][j]; //shift blocks;
-      }
-    }
+	}
+	for(i = 0; i < height; i++)
+	{
+		linecheck = 1;
+		for(j = 1; j < width - 1; j++)
+		{
+			if(wall[i][j] != lockedblock)
+			{
+				linecheck = 0;
+			}
+		}
+		if(linecheck)
+		{
+			remainline[remaincount] = i;
+			remaincount++;
+		}
 	}
 }
 
 int main()
 {
-	int		x	 = 5, y = 5, i, j, c = 0, oh = 0;
-	clock_t time = 0, sectime = 0;
+	int	  x	   = 5, y = 5, i, j, c = 0, oh = 0;
+	float time = 0, sectime = 0;
 	for(i = 0; i < height; i++)
 	{
 		for(j = 0; j < width; j++)
@@ -191,7 +384,7 @@ int main()
 			{
 				for(j = 0; j < blocksize; j++)
 				{
-					field[y + i][x + j] = block[i][j];
+					field[y + i][x + j] += block[i][j];
 				}
 			}
 			for(i = 0; i < height; i++)
@@ -210,10 +403,10 @@ int main()
 			printfield(field);
 			c = 0;
 		}
-		time = clock() / CLOCKS_PER_SEC - sectime;
-		if(time == 1)
+		time = clock() / (float) (CLOCKS_PER_SEC) -sectime;
+		if(time >= 0.5)
 		{
-			sectime++;
+			sectime += 0.5;
 
 			if(collision_detect(x, y + 1) == 0)
 			{
