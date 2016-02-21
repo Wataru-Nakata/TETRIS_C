@@ -1,8 +1,8 @@
-	/*
-	 * TETRIS Program
-	 * Author : Wataru Nakata
-	 * TODO: add blocks erase add score system.
-	 */
+/*
+ * TETRIS Program
+ * Author : Wataru Nakata
+ * TODO: add blocks add score system.
+ */
 #include  <stdio.h>
 #include <conio.h>
 #include <stdlib.h>
@@ -228,15 +228,15 @@ void printfield(char c[height][width])
 		{
 			if(c[j][i] == wallchar)
 			{
-				printf("??");
+				printf("Å°");
 			}
 			else if((c[j][i] == blockchar) || (c[j][i] == lockedblock))
 			{
-				printf("??");
+				printf("Å†");
 			}
 			else
 			{
-				printf("?@");
+				printf("Å@");
 			}
 		}
 		printf("\n");
@@ -259,14 +259,14 @@ int collision_condition(int y, int x)
 	return 0;
 }
 
-int collision_detect(int tx, int ty)
+int collision_detect(int tx, int ty,int blockselect,int tilt)
 {
 	int i, j;
 	for(i = 0; i < blocksize; i++)
 	{
 		for(j = 0; j < blocksize; j++)
 		{
-			if(collision_condition(ty + i, tx + j) && (block[i][j] == 1))
+			if(collision_condition(ty + i, tx + j) && (block[blockselect][tilt][i][j] == 1))
 			{
 				return 1;
 			}
@@ -275,9 +275,9 @@ int collision_detect(int tx, int ty)
 	return 0;
 }
 
-int key_control(int* x, int* y)
+int key_control(int* x, int* y,int *t,int blockse)
 {
-	int key, i, j, tx = *x, ty = *y;
+	int key, i, j, tx = *x, ty = *y,tempt=*t;
 	if(kbhit())
 	{
 		key = _getch();
@@ -285,16 +285,17 @@ int key_control(int* x, int* y)
 		{
 		case 'a': tx -= 1; break;
 		case 'd': tx += 1; break;
+		case 'w': tempt++; break;
 		case 'q': exit_seq(); break;
 		case 's':
-			while(collision_detect(tx, ty + 1) == 0)
+			while(collision_detect(tx, ty + 1,blockse%blockNum,tempt%4) == 0)
 			{
 				ty++;
 			}
 			break;
 		}
-		// ????????
-		if(collision_detect(tx, ty))
+
+		if(collision_detect(tx, ty,blockse%blockNum,tempt%4))
 		{
 			return 0;
 		}
@@ -302,6 +303,7 @@ int key_control(int* x, int* y)
 		key = 0;
 		*x	= tx;
 		*y	= ty;
+		*t = tempt;
 		return 1;
 	}
 	else
@@ -357,7 +359,7 @@ void checklines()
 
 int main()
 {
-	int	  x	   = 5, y = 5, i, j, c = 0, oh = 0;
+	int	  x	   = 5, y = 5, i, j, c = 0, oh = 0,bs=0,tilt = 0;
 	float time = 0, sectime = 0;
 	for(i = 0; i < height; i++)
 	{
@@ -368,8 +370,7 @@ int main()
 	}
 	while(1)
 	{
-		key_control(&x, &y);
-		if(key_control(&x, &y) || c)
+		if(key_control(&x, &y,&tilt,bs)|| c)
 		{
 			system("cls");
 			for(i = 0; i < height; i++)
@@ -384,7 +385,7 @@ int main()
 			{
 				for(j = 0; j < blocksize; j++)
 				{
-					field[y + i][x + j] += block[i][j];
+					field[y + i][x + j] += block[bs%blockNum][tilt%4][i][j];
 				}
 			}
 			for(i = 0; i < height; i++)
@@ -408,7 +409,7 @@ int main()
 		{
 			sectime += 0.5;
 
-			if(collision_detect(x, y + 1) == 0)
+			if(collision_detect(x, y + 1,bs%blockNum,tilt%4) == 0)
 			{
 				y++;
 				oh = 0;
@@ -421,6 +422,7 @@ int main()
 					y = 5;
 					block2wall();
 					checklines();
+					bs++;
 				}
 				oh = 1;
 			}
