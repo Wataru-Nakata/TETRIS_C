@@ -218,7 +218,7 @@ char wall[height][width] = {
 	{ 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9 },
 	{ 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 }
 };
-char field[height][width], collision_field[height][width];
+char field[height][width], collision_field[height][width], temp_field[height][width];
 void printfield(char c[height][width])
 {
 	int i, j;
@@ -259,7 +259,7 @@ int collision_condition(int y, int x)
 	return 0;
 }
 
-int collision_detect(int tx, int ty,int blockselect,int tilt)
+int collision_detect(int tx, int ty, int blockselect, int tilt)
 {
 	int i, j;
 	for(i = 0; i < blocksize; i++)
@@ -275,9 +275,9 @@ int collision_detect(int tx, int ty,int blockselect,int tilt)
 	return 0;
 }
 
-int key_control(int* x, int* y,int *t,int blockse)
+int key_control(int* x, int* y, int* t, int blockse)
 {
-	int key, i, j, tx = *x, ty = *y,tempt=*t;
+	int key, i, j, tx = *x, ty = *y, tempt = *t;
 	if(kbhit())
 	{
 		key = _getch();
@@ -288,14 +288,14 @@ int key_control(int* x, int* y,int *t,int blockse)
 		case 'w': tempt++; break;
 		case 'q': exit_seq(); break;
 		case 's':
-			while(collision_detect(tx, ty + 1,blockse%blockNum,tempt%4) == 0)
+			while(collision_detect(tx, ty + 1, blockse % blockNum, tempt % 4) == 0)
 			{
 				ty++;
 			}
 			break;
 		}
 
-		if(collision_detect(tx, ty,blockse%blockNum,tempt%4))
+		if(collision_detect(tx, ty, blockse % blockNum, tempt % 4))
 		{
 			return 0;
 		}
@@ -303,7 +303,7 @@ int key_control(int* x, int* y,int *t,int blockse)
 		key = 0;
 		*x	= tx;
 		*y	= ty;
-		*t = tempt;
+		*t	= tempt;
 		return 1;
 	}
 	else
@@ -330,8 +330,7 @@ void block2wall()
 
 void checklines()
 {
-	int	 i, j, k, linecheck, remainline[height] = { 0 }, remaincount = 0;
-	char temp_field[height][width];
+	int i, j, k, linecheck, remainline[height] = { 0 }, remaincount = 0, delcount = 0;
 	for(i = 0; i < height; i++)
 	{
 		for(j = 0; j < width; j++)
@@ -349,18 +348,47 @@ void checklines()
 				linecheck = 0;
 			}
 		}
-		if(linecheck)
+		if(linecheck == 0)
 		{
 			remainline[remaincount] = i;
 			remaincount++;
 		}
+		else
+		{
+			for(j = 0; j < width; j++)
+			{
+				temp_field[i][j] = 0;
+			}
+			delcount++;
+		}
+	}
+	k = delcount;
+	for(i = 0; i < height; i++)
+	{
+		for(j = 0; j < width; j++)
+		{
+			wall[k][j] = temp_field[remainline[i]][j];
+		}
+		k++;
 	}
 }
 
 int main()
 {
-	int	  x	   = 5, y = 5, i, j, c = 0, oh = 0,bs=0,tilt = 0;
-	float time = 0, sectime = 0;
+	int x = width/2, y = 0, i, j, c = 0, oh = 0, bs= 0, tilt = 0,
+		blockori[blockNum] = { 0, 1, 2, 3, 4, 5, 6}, blockselect[blockNum],
+		index;
+	float  Nowtime = 0, sectime = 0;
+	time_t randseed;
+	for(i = 0; i < blockNum; i++)
+	{
+		index = rand() % (blockNum - i);
+		blockselect[i] = blockori[index];
+		for(j = index; j < blockNum - 1; j++)
+		{
+			blockori[j] = blockori[j + 1];
+		}
+	}
 	for(i = 0; i < height; i++)
 	{
 		for(j = 0; j < width; j++)
@@ -368,9 +396,11 @@ int main()
 			field[i][j] = wall[i][j];
 		}
 	}
+	randseed = time(NULL);
+	srand((unsigned int) randseed);
 	while(1)
 	{
-		if(key_control(&x, &y,&tilt,bs)|| c)
+		if(key_control(&x, &y, &tilt, bs) || c)
 		{
 			system("cls");
 			for(i = 0; i < height; i++)
@@ -385,7 +415,7 @@ int main()
 			{
 				for(j = 0; j < blocksize; j++)
 				{
-					field[y + i][x + j] += block[bs%blockNum][tilt%4][i][j];
+					field[y + i][x + j] += block[blockselect[bs]][tilt % 4][i][j];
 				}
 			}
 			for(i = 0; i < height; i++)
@@ -395,21 +425,22 @@ int main()
 					collision_field[i][j] = field[i][j];
 				}
 			}
-			time = clock() / CLOCKS_PER_SEC - sectime;
-			if(time == 1)
+			Nowtime = clock() / CLOCKS_PER_SEC - sectime;
+			if(Nowtime == 1)
 			{
 				sectime++;
 				y++;
 			}
 			printfield(field);
+			printfield(temp_field);
 			c = 0;
 		}
-		time = clock() / (float) (CLOCKS_PER_SEC) -sectime;
-		if(time >= 0.5)
+		Nowtime = clock() / (float) (CLOCKS_PER_SEC) -sectime;
+		if(Nowtime >= 0.5)
 		{
 			sectime += 0.5;
 
-			if(collision_detect(x, y + 1,bs%blockNum,tilt%4) == 0)
+			if(collision_detect(x, y + 1, blockselect[bs], tilt % 4) == 0)
 			{
 				y++;
 				oh = 0;
@@ -423,6 +454,20 @@ int main()
 					block2wall();
 					checklines();
 					bs++;
+					if(bs >= blockNum)
+					{
+						bs = 0;
+						// ƒuƒƒbƒN—”
+						for(i = 0; i < blockNum; i++)
+						{
+							index = rand() % (blockNum - i);
+							blockselect[i] = blockori[index];
+							for(j = index; j < blockNum - 1; j++)
+							{
+								blockori[j] = blockori[j + 1];
+							}
+						}
+					}
 				}
 				oh = 1;
 			}
